@@ -1,17 +1,10 @@
-from itertools import product
-import string
 import socket
 import sys
+import os
+from itertools import product
 
 ip_address = sys.argv[1]
 port = sys.argv[2]
-letters_digits = string.ascii_letters + string.digits
-
-
-def generate_messages(letters_digits):
-    for i in range(1, len(letters_digits) + 1):
-        my_generator = (message for message in product(letters_digits, repeat=i))
-        yield from my_generator
 
 
 class Socket:
@@ -28,12 +21,16 @@ class Socket:
         return self.sock.recv(1024)
 
     def check_password(self):
-        message_generator = generate_messages(letters_digits)
+        with open(f'{os.getcwd()}\\passwords.txt', 'r') as file:
+            passwords = file.read().splitlines()
+            for password in passwords:
+                message_generator = list(map(lambda x: ''.join(x),
+                                             product(*([letter.lower(), letter.upper()] for letter in password))))
 
-        for message in message_generator:
-            self.sock.send(''.join(message).encode())
-            if self.receive().decode('utf-8') == "Connection success!":
-                return ''.join(message)
+                for message in message_generator:
+                    self.sock.send(''.join(message).encode())
+                    if self.receive().decode('utf-8') == "Connection success!":
+                        return ''.join(message)
 
     def close_conn(self):
         self.sock.close()
